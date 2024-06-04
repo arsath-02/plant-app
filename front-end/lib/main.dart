@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'upload_page.dart';
 import 'registration_page.dart';
 
@@ -32,8 +34,80 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController phoneNumberController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+
+  Future<void> loginUser() async {
+    final String email = emailController.text;
+    final String password = passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('All fields are required'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:5000/api/login'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UploadPage()),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('Invalid email or password'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error during login: $e');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content:
+              Text('An error occurred during login. Please try again later.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
         fit: StackFit.expand,
         children: <Widget>[
           Image.asset(
-            "assets/images.jpeg", // Replace with your image path
+            "assets/images.jpeg",
             fit: BoxFit.cover,
           ),
           Center(
@@ -69,44 +143,26 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  Container(
-                    width: 300,
-                    height: 80,
-                    child: TextField(
-                      controller: phoneNumberController,
-                      decoration: InputDecoration(hintText: "Phone number"),
-                    ),
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(hintText: "Email"),
                   ),
-                  Container(
-                    width: 300,
-                    height: 80,
-                    child: TextField(
-                      obscureText: true,
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                      ),
+                  SizedBox(height: 20),
+                  TextField(
+                    obscureText: true,
+                    controller: passwordController,
+                    decoration: InputDecoration(
+                      hintText: "Password",
                     ),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      // Implement login logic here
-                      bool loginSuccessful =
-                          true; // Placeholder for actual login logic
-                      if (loginSuccessful) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => UploadPage()),
-                        );
-                      }
-                    },
+                    onPressed: loginUser,
                     child: Text('Login'),
                   ),
                   SizedBox(height: 20),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to registration page
                       Navigator.push(
                         context,
                         MaterialPageRoute(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RegistrationPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -7,6 +9,103 @@ class RegistrationPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  Future<void> registerUser(BuildContext context) async {
+    final String name = nameController.text;
+    final String email = emailController.text;
+    final String phoneNumber = phoneNumberController.text;
+    final String password = passwordController.text;
+    final String confirmPassword = confirmPasswordController.text;
+
+    if (password != confirmPassword) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Passwords do not match'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    print('Name: $name');
+    print('Email: $email');
+    print('Phone Number: $phoneNumber');
+    print('Password: $password');
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'http://localhost:3000/api/register'), // Use your local machine's IP address
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'phoneNumber': phoneNumber,
+          'password': password,
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Success'),
+            content: Text('User registration successful'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('User registration failed: ${response.body}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('An error occurred: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,19 +166,7 @@ class RegistrationPage extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    // Implement registration logic here
-                    // For demonstration purposes, print the registration details
-                    print('Name: ${nameController.text}');
-                    print('Email: ${emailController.text}');
-                    print('Phone Number: ${phoneNumberController.text}');
-                    print('Password: ${passwordController.text}');
-                    print(
-                        'Confirm Password: ${confirmPasswordController.text}');
-
-                    // Navigate back to the login page
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => registerUser(context),
                   child: Text('Register'),
                 ),
               ],
