@@ -37,78 +37,6 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  Future<void> loginUser() async {
-    final String email = emailController.text;
-    final String password = passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('All fields are required'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:5000/api/login'),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => UploadPage()),
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text('Invalid email or password'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error during login: $e');
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content:
-              Text('An error occurred during login. Please try again later.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
         fit: StackFit.expand,
         children: <Widget>[
           Image.asset(
-            "assets/images.jpeg",
+            "assets/images.jpeg", // Replace with your image path
             fit: BoxFit.cover,
           ),
           Center(
@@ -157,12 +85,72 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: loginUser,
+                    onPressed: () async {
+                      // Implement login logic here
+                      final email = emailController.text;
+                      final password = passwordController.text;
+
+                      // Perform validation to ensure fields are not empty
+                      if (email.isEmpty || password.isEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Error'),
+                            content:
+                                Text('Please enter both email and password'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Send login request to server
+                      final response = await http.post(
+                        Uri.parse(
+                            'http://localhost:5000/api/login'), // Adjust the URL accordingly
+                        headers: {
+                          'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        body: jsonEncode({
+                          'email': email,
+                          'password': password,
+                        }),
+                      );
+
+                      if (response.statusCode == 200) {
+                        // Login successful, navigate to upload page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UploadPage()),
+                        );
+                      } else {
+                        // Login failed, show error message
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Error'),
+                            content: Text('Invalid email or password'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
                     child: Text('Login'),
                   ),
                   SizedBox(height: 20),
                   GestureDetector(
                     onTap: () {
+                      // Navigate to registration page
                       Navigator.push(
                         context,
                         MaterialPageRoute(

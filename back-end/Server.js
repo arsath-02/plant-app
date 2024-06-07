@@ -12,9 +12,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors()); // Enable CORS
 
+// Enhanced logging for debugging connection issues
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB', err));
+  .catch(err => {
+    console.error('Could not connect to MongoDB:', err);
+    console.error('Connection error details:', err.reason);
+  });
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -62,5 +66,8 @@ app.use((err, req, res, next) => {
   res.status(500).send({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+// Ensure your .env file contains the correct MongoDB URI
+// MONGODB_URI=mongodb+srv://username:password@registerpage.7c32noh.mongodb.net/mydatabase?retryWrites=true&w=majority&appName=registerpage
