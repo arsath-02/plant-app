@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:html' as html; // Import html library for file picker
-import 'dart:convert';
+import 'package:flutter/widgets.dart';
+
+import 'image_picker_stub.dart'
+    if (dart.library.html) 'image_picker_web.dart'
+    if (dart.library.io) 'image_picker_mobile.dart';
 
 class UploadPage extends StatefulWidget {
   @override
@@ -12,36 +14,8 @@ class _UploadPageState extends State<UploadPage> {
   String? _imageUrl;
 
   Future<void> getImage() async {
-    final input = html.FileUploadInputElement()..accept = 'image/*';
-    input.click();
-    await input.onChange.first;
-
-    if (input.files!.isEmpty) return;
-    final reader = html.FileReader();
-    reader.readAsDataUrl(input.files!.first);
-    await reader.onLoad.first;
-
-    final bytes = reader.result as String;
-    await uploadImage(input.files!.first, bytes.split(",").last);
-  }
-
-  Future<void> uploadImage(html.File imageFile, String base64Image) async {
-    var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'http://127.0.0.1:5000/predict')); // Ensure the URL is correct
-    request.files.add(http.MultipartFile.fromBytes(
-      'file',
-      base64.decode(base64Image),
-      filename: imageFile.name,
-    ));
-
-    var res = await request.send();
-
-    if (res.statusCode == 200) {
-      var responseData = await res.stream.bytesToString();
-      var jsonResponse = json.decode(responseData);
-
+    await pickImage((base64Image, filename) async {
+      final jsonResponse = await uploadImage(base64Image, filename);
       setState(() {
         _imageUrl = jsonResponse['img_path'];
       });
@@ -52,11 +26,7 @@ class _UploadPageState extends State<UploadPage> {
             builder: (context) => ResultPage(
                 result: jsonResponse['prediction'], imageUrl: _imageUrl!)),
       );
-    } else {
-      var responseData = await res.stream.bytesToString();
-      print('Error response: $responseData');
-      throw Exception('Failed to upload image');
-    }
+    });
   }
 
   @override
@@ -84,23 +54,7 @@ class _UploadPageState extends State<UploadPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               ElevatedButton(
-                onPressed: _imageUrl == null
-                    ? null
-                    : () async {
-                        final input = html.FileUploadInputElement()
-                          ..accept = 'image/*';
-                        input.click();
-                        await input.onChange.first;
-
-                        if (input.files!.isEmpty) return;
-                        final reader = html.FileReader();
-                        reader.readAsDataUrl(input.files!.first);
-                        await reader.onLoad.first;
-
-                        final bytes = reader.result as String;
-                        await uploadImage(
-                            input.files!.first, bytes.split(",").last);
-                      },
+                onPressed: getImage,
                 child: Text('Upload'),
               ),
             ],

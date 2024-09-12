@@ -9,7 +9,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title});
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
         fit: StackFit.expand,
         children: <Widget>[
           Image.asset(
-            "assets/images.jpeg", // Replace with your image path
+            "assets/images.jpeg", 
             fit: BoxFit.cover,
           ),
           Center(
@@ -86,11 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
-                      // Implement login logic here
                       final email = emailController.text;
                       final password = passwordController.text;
 
-                      // Perform validation to ensure fields are not empty
+                      // Validate inputs
                       if (email.isEmpty || password.isEmpty) {
                         showDialog(
                           context: context,
@@ -109,10 +108,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         return;
                       }
 
-                      // Send login request to server
+                      // Send login request
                       final response = await http.post(
                         Uri.parse(
-                            'http://localhost:5000/api/login'), // Adjust the URL accordingly
+                            'http://localhost:3000/api/login'), // Adjust URL as needed
                         headers: {
                           'Content-Type': 'application/json; charset=UTF-8',
                         },
@@ -122,14 +121,15 @@ class _MyHomePageState extends State<MyHomePage> {
                         }),
                       );
 
+                      // Check response status
                       if (response.statusCode == 200) {
-                        // Login successful, navigate to upload page
+                        // Successful login
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => UploadPage()),
                         );
                       } else {
-                        // Login failed, show error message
+                        // Failed login
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -157,11 +157,14 @@ class _MyHomePageState extends State<MyHomePage> {
                             builder: (context) => RegistrationPage()),
                       );
                     },
-                    child: Text(
-                      "If you don't have an account, click here to create a new account",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text(
+                        "If you don't have an account, click here to create a new account",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ),
