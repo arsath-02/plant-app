@@ -1,14 +1,20 @@
 from flask import Flask, request, jsonify, url_for
 from tensorflow.keras.preprocessing import image
 import numpy as np
-from tensorflow.keras.models import load_model
 import os
+import tensorflow as tf  
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
-loaded_model = load_model("finetuned_model.h5")
+
+interpreter = tf.lite.Interpreter(model_path="model.tflite")
+interpreter.allocate_tensors()
+
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 class_labels = [
     'Tomato___Late_blight', 'Tomato___healthy', 'Grape___healthy', 
@@ -45,17 +51,27 @@ def predict():
 
         print(f"File saved to {file_path}")
 
+        
         img = image.load_img(file_path, target_size=(256, 256))
         img_array = image.img_to_array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+        img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
 
-        predictions = loaded_model.predict(img_array)
+        
+        interpreter.set_tensor(input_details[0]['index'], img_array)
+
+        
+        interpreter.invoke()
+
+        
+        predictions = interpreter.get_tensor(output_details[0]['index'])
         print(f"Predictions: {predictions}")
 
+        
         class_index = np.argmax(predictions)
         predicted_class = class_labels[class_index]
         print(f"Predicted class: {predicted_class}")
 
+        
         image_url = url_for('static', filename=f'uploads/{file.filename}', _external=True)
 
         return jsonify({
@@ -65,4 +81,3 @@ def predict():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
