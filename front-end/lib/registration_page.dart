@@ -42,7 +42,7 @@ class RegistrationPage extends StatelessWidget {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://localhost:3000/api/register'), // Use your local machine's IP address
+            'https://plant-app-db.onrender.com/api/register'), 
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

@@ -1,4 +1,4 @@
-# flterapp
+# plantapp
 
 A new Flutter project.
 
