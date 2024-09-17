@@ -22,4 +22,4 @@ This project is aimed at developing a mobile application for predicting plant di
 
 1. **Clone the Repository**: 
    ```bash
-   git clone https://github.com/your-username/plant-disease-prediction.git
+   git clone https://github.com/arsath-02/plant-disease-prediction.git
